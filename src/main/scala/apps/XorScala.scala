@@ -1,10 +1,19 @@
 package apps
 
 import edu.cmu.dynet._
+import XorScala._
+
+class XorScala {
+  val m = new ParameterCollection
+  val p_W = m.addParameters(Dim(HIDDEN_SIZE, 2))
+  val p_b = m.addParameters(Dim(HIDDEN_SIZE))
+  val p_V = m.addParameters(Dim(1, HIDDEN_SIZE))
+  val p_a = m.addParameters(Dim(1))
+}
 
 object XorScala {
   val HIDDEN_SIZE = 8
-  val ITERATIONS = 30
+  val ITERATIONS = 50
 
   def main(args: Array[String]): Unit = {
     println("Running XOR example")
@@ -58,6 +67,27 @@ object XorScala {
       loss /= 4
       println("iter = " + iter + ", loss = " + loss)
     }
+
+    x_values.update(0, 1)
+    x_values.update(1, 1)
+    println("PRED = " + predict(p_W, p_b, p_V, p_a, x_values).value.toFloat)
+
+    x_values.update(0, -1)
+    x_values.update(1, 1)
+    println("PRED = " + predict(p_W, p_b, p_V, p_a, x_values).value.toFloat)
+  }
+
+  def predict(p_W:Parameter, p_b:Parameter, p_V:Parameter, p_a:Parameter, x_values:FloatVector): Expression = {
+    ComputationGraph.renew()
+
+    // all expressions must be recreated from scratch after ComputationGraph.renew()
+    val W = Expression.parameter(p_W)
+    val b = Expression.parameter(p_b)
+    val V = Expression.parameter(p_V)
+    val a = Expression.parameter(p_a)
+
+    val x = Expression.input(Dim(2), x_values)
+    V * (Expression.tanh(W * x + b)) + a
   }
 }
 
